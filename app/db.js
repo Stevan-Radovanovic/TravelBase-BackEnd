@@ -129,9 +129,10 @@ let updateUserFromView = async function (
   broj_telefona
 ) {
   const query = {
-    text: `update korisnik_view set "prezime_korisnika" = '${prezime_korisnika}', "ime_korisnika" = '${ime_korisnika}', "broj_telefona"='${broj_telefona}' where id_korisnika = ${id_korisnika};`,
+    text: `update korisnik_view set prezime_korisnika = $1, ime_korisnika = $2, broj_telefona= $3 where id_korisnika = $4;`,
+    values: [prezime_korisnika, ime_korisnika, broj_telefona, id_korisnika],
   };
-
+  console.log(query);
   return pool.query(query);
 };
 

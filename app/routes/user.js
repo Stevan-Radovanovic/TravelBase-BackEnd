@@ -65,13 +65,13 @@ module.exports = function (app) {
   app.put('/updateUserFromView', (req, res) => {
     console.log('Update User From View');
     let body = req.body;
-    db
-      .updateUserFromView(
-        body.id_korisnika,
-        body.ime_korisnika,
-        body.prezime_korisnika,
-        body.broj_telefona
-      )
+    console.log(body);
+    db.updateUserFromView(
+      body.id_korisnika,
+      body.ime_korisnika,
+      body.prezime_korisnika,
+      body.broj_telefona
+    )
       .then((resResponse) => {
         if (resResponse.rowCount < 1) {
           helpers.createResponse(
@@ -90,15 +90,10 @@ module.exports = function (app) {
           resResponse.rows
         );
         return;
-      }),
-      (err) => {
-        helpers.createResponse(
-          res,
-          400,
-          101,
-          'Updating user from view - db error!'
-        );
-      };
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   });
 
   app.get('/getAllPaymentCards', (req, res) => {
@@ -140,13 +135,13 @@ module.exports = function (app) {
         let body = req.body;
         db
           .addUserToUserView(
-            body.ime,
-            body.prezime,
+            body.ime_korisnika,
+            body.prezime_korisnika,
             body.broj_telefona,
             body.email,
             body.adresa_id,
             body.grad_id,
-            id
+            id + 12
           )
           .then((resResponse) => {
             if (resResponse.rowCount < 1) {
