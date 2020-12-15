@@ -1,7 +1,7 @@
 {
-    "user": "postgres",
-    "host": "localhost",
-    "database": "food_db",
-    "password": "postgres",
-    "port": 5432
-  }
+  "user": "postgres",
+  "host": "localhost",
+  "database": "master2",
+  "password": "newPassword",
+  "port": 5432
+}

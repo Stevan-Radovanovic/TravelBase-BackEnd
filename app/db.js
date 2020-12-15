@@ -1,239 +1,279 @@
 var dbConfig = require('../dbConfig.json');
 
-const {
-    Pool
-} = require('pg')
+const { Pool } = require('pg');
 
 const pool = new Pool({
-    user: dbConfig.user,
-    host: dbConfig.host,
-    database: dbConfig.database,
-    password: dbConfig.password,
-    port: dbConfig.port,
-})
+  user: dbConfig.user,
+  host: dbConfig.host,
+  database: dbConfig.database,
+  password: dbConfig.password,
+  port: dbConfig.port,
+});
 
+let getAllArrangements = async () => {
+  const query = {
+    text:
+      'select * from aranzman a inner join hotel h on a.id_hotela=h.id_hotela',
+  };
+  return pool.query(query);
+};
 
-///////////////////////////////USERS/////////////////////////
-var getAllUsers = async function () {
+let updateArrangement = async (novi_naziv, id_aranzmana) => {
+  const query = {
+    text: `update aranzman set "naziv_aranzmana" = '${novi_naziv}' where id_aranzmana = ${id_aranzmana};`,
+  };
+
+  return pool.query(query);
+};
+
+let getAllReservations = async () => {
+  const query = {
+    text:
+      'select * from rezervacija r inner join aranzman a on r.id_aranzmana=a.id_aranzmana inner join korisnik ko on r.id_korisnika=ko.id_korisnika inner join hotel h on h.id_hotela = a.id_hotela',
+  };
+  return pool.query(query);
+};
+
+let updateReservation = async (novi_naziv, id_aranzmana) => {
+  try {
     const query = {
-        text: 'SELECT * FROM public."user" ORDER BY user_id ASC '
+      text: `update rezervacija set "naziv_aranzmana" = '${novi_naziv}' where aranzman_id = ${id_aranzmana};`,
+    };
+
+    return pool.query(query);
+  } catch (error) {
+    console.log('ERRROR  iz metode');
+  }
+};
+
+let addReservation = async (
+  id_aranzmana,
+  datum,
+  broj_noci,
+  prijava,
+  odjava,
+  id_korisnika,
+  id_rezervacije
+) => {
+  const query = {
+    text:
+      'INSERT INTO "rezervacija"("id_aranzmana", "datum", "broj_noci", "id_rezervacije", "id_korisnika","prijava","odjava") VALUES($1, $2, $3, $4, $5,$6,$7)',
+    values: [
+      id_aranzmana,
+      datum,
+      broj_noci,
+      id_rezervacije,
+      id_korisnika,
+      prijava,
+      odjava,
+    ],
+  };
+  return pool.query(query);
+};
+
+let getAllUsers = async () => {
+  const query = {
+    text: 'select * from korisnik',
+  };
+  return pool.query(query);
+};
+
+let getAllUsersFromView = async () => {
+  const query = {
+    text: 'select * from korisnik_view kv',
+  };
+  return pool.query(query);
+};
+
+let addUserToUserView = async (
+  ime,
+  prezime,
+  broj_telefona,
+  email,
+  adresa_id,
+  grad_id,
+  id_korisnika
+) => {
+  const query = {
+    text:
+      'INSERT INTO "korisnik_view"("ime_korisnika","prezime_korisnika","broj_telefona","email","id_adrese","id_grada","id_korisnika") VALUES($1, $2, $3, $4,$5,$6,$7)',
+    values: [
+      ime,
+      prezime,
+      broj_telefona,
+      email,
+      adresa_id,
+      grad_id,
+      id_korisnika,
+    ],
+  };
+  return pool.query(query);
+};
+
+let updateUser = async (novo_ime, id_korisnika) => {
+  try {
+    const query = {
+      text: `update korisnik set "ime_korisnika" = '${novo_ime}' where id_korisnika = ${id_korisnika};`,
+    };
+
+    return pool.query(query);
+  } catch (error) {
+    console.log('ERRROR  iz metode');
+  }
+};
+
+let updateUserFromView = async function (
+  id_korisnika,
+  ime_korisnika,
+  prezime_korisnika,
+  broj_telefona
+) {
+  const query = {
+    text: `update korisnik_view set "prezime_korisnika" = '${prezime_korisnika}', "ime_korisnika" = '${ime_korisnika}', "broj_telefona"='${broj_telefona}' where id_korisnika = ${id_korisnika};`,
+  };
+
+  return pool.query(query);
+};
+
+let getAllPaymentCards = async function () {
+  const query = {
+    text:
+      'select * from platna_kartica pk inner join tip_platne_kartice tpk on pk.id_tipa_platne_kartice=tpk.id_tipa_platne_kartice',
+  };
+  return pool.query(query);
+};
+
+let getAllPaymentCardTypes = async function () {
+  const query = {
+    text: 'select * from tip_platne_kartice',
+  };
+  return pool.query(query);
+};
+
+let addPaymentCard = async function (
+  broj_kartice,
+  tip_platne_kartice_id,
+  turista_id,
+  datum_isteka,
+  id
+) {
+  const query = {
+    text:
+      'INSERT INTO "platna_kartica"("id_platne_kartice", "broj_kartice", "id_tipa_platne_kartice", "id_korisnika", "datum_isteka") VALUES($5, $1, $2, $3, $4)',
+    values: [broj_kartice, tip_platne_kartice_id, turista_id, datum_isteka, id],
+  };
+  return pool.query(query);
+};
+
+let updatePaymentCard = async function (platna_kartica_id, ime) {
+  try {
+    const query = {
+      text: `update platna_kartica set "ime_korisnika" = '${ime}' where platna_kartica_id = ${platna_kartica_id};`,
     };
     return pool.query(query);
+  } catch (error) {
+    console.log('ERRROR  iz metode');
+  }
 };
 
-var getUserByUsername = async function (username) {
-    const query = {
-        text: 'SELECT * FROM "user" WHERE username = $1',
-        values: [username]
-    }
-    return pool.query(query);
+let addPaymentCardType = async function (new_payment_card, id) {
+  console.log('NEW PAYMENT CARD TYPE  ', new_payment_card);
+  let naziv = new_payment_card.naziv;
+  let vrsta_tipa = new_payment_card.vrsta_tipa;
+  let naziv_platne_kartice = '(' + naziv + ',' + vrsta_tipa + ')';
+
+  const query = {
+    text:
+      'insert into tip_platne_kartice("id_tipa_platne_kartice","naziv_tipa_platne_kartice") values ($2,$1)',
+    values: [naziv_platne_kartice, id],
+  };
+  return pool.query(query);
 };
 
-var updateUsersOffer = async function (period, username, meals) {
-    console.log('usao sam u');
-    console.log('PERIOD: ', period);
-    console.log('MEALSE: ', meals);
-
-    const mealsArray = meals.map(a => '{' + a + '}');
-    console.log('#############################');
-
-
-    console.log(`UPDATE "users_offer" SET ${username}=\'{${mealsArray.toString()}}\' WHERE "period"='${period}'`);
-
-
-    const query = {
-        //text: 'UPDATE "users_offer" SET kaca='{{"0","0","0","0"},{"3","3","3","3"}}' WHERE "period"= ' 11- 13';'
-        //text: 'UPDATE "users_offer" SET '+username+'=\'{$1}\' WHERE "period"=$2',
-        text: `UPDATE "users_offer" SET ${username}=\'{${mealsArray.toString()}}\' WHERE "period"='${period}'`
-        //values: [mealsArray.toString(), period ]
-    }
-
-    return pool.query(query);
+let getAllRegular = async function () {
+  const query = {
+    text:
+      'select * from regular_ugovor ru inner join popust p on ru.id_popusta=p.id_popusta',
+  };
+  return pool.query(query);
 };
 
-var setUsersOfferPeriod = async function (period) {
-    console.log('SET OFFER DB')
-    const query = {
-        text: 'INSERT INTO "users_offer" ("period") values ($1)',
-        values: [period]
-    }
-    return pool.query(query);
+let getAllVip = async function () {
+  const query = {
+    text:
+      'select * from vip_ugovor ru inner join popust p on ru.id_popusta=p.id_popusta',
+  };
+  return pool.query(query);
 };
 
-var saveNewRecommendation = async function (title, recommendation, numOfLikes, supporters) {
-    console.log('Inserting new recommendation', numOfLikes)
-
-    const query = {
-        text: `INSERT INTO "new_recommendation" ("title","recommendation","num_of_likes","supporters") values ('${title}','${recommendation}','${numOfLikes}','{${supporters}}')`,
-        // values: [title, recommendation]
-    }
-    console.log(query.text)
-    return pool.query(query);
+let addNewContract = async function (
+  id,
+  napomena,
+  datum,
+  id_popusta,
+  id_korisnika,
+  id_zaposlenog,
+  id_rezervacije,
+  id_aranzmana
+) {
+  const query = {
+    text:
+      'INSERT INTO "ugovor"("id_ugovora", "datum", "napomena", "id_popusta", "id_korisnika", "id_zaposlenog", "id_rezervacije", "id_aranzmana") VALUES($1, $3, $2, $4, $5, $6, $7, $8)',
+    values: [
+      id,
+      napomena,
+      datum,
+      id_popusta,
+      id_korisnika,
+      id_zaposlenog,
+      id_rezervacije,
+      id_aranzmana,
+    ],
+  };
+  return pool.query(query);
 };
 
-var getAllRecommendations = async function () {
-    const query = {
-        text: 'SELECT * FROM "new_recommendation" order by "num_of_likes" desc',
-    }
-    return pool.query(query);
+let getHotels = async function () {
+  const query = {
+    text: 'select * from hotel',
+  };
+  return pool.query(query);
 };
 
-
-var updateRecommendation = async function (recommendationId, recLikes, supporters) {
-
-    console.log('Recommendation id: ', recommendationId);
-    console.log('Recommendation likes: ', recLikes);
-    let recomendationLikes = recLikes;
-    console.log('################UPDATE RECOMMENDATIONS#############');
-    const query = {
-
-        text: `update new_recommendation set "num_of_likes" = '${recomendationLikes}', "supporters"='{${supporters}}' where recommendation_id = ${recommendationId};`,
-    }
-
-    return pool.query(query);
+let getCities = async function () {
+  const query = {
+    text: 'select * from grad',
+  };
+  return pool.query(query);
 };
 
-var getUserId = async function (username) {
-    const query = {
-        text: `select user_id from "user" where "username"='${username}'`
-    };
-    return pool.query(query);
-}
-
-var getUserBoolean = async function (username, password) {
-    const query = {
-        text: `select username, user_id, role from "user" where "username"='${username}' AND "password"='${password}'`
-    };
-    return pool.query(query);
-}
-
-///////////////////////////////MEALS/////////////////////////
-
-var addNewMeal = async function (mealCategory, mealDays, mealName, mealType) {
-    const query = {
-        text: 'INSERT INTO "meal"("mealCategory", "mealDays", "mealName", "mealType") VALUES($1, $2, $3, $4)',
-        values: [mealCategory, mealDays, mealName, mealType]
-    }
-    return pool.query(query);
+let addNewHotel = async function (id, ime_hotela, zvezdice, id_grada) {
+  const query = {
+    text:
+      'INSERT INTO "hotel"("id_hotela", "ime_hotela", "zvezdice", "id_grada") VALUES($1, $2, $3, $4)',
+    values: [id, ime_hotela, zvezdice, id_grada],
+  };
+  return pool.query(query);
 };
 
-var getAllMeals = async function () {
-    const query = {
-        text: 'SELECT * FROM public."meal" ORDER BY meal_id ASC '
-    };
-    return pool.query(query);
-};
-
-var deleteMeal = async function (meal_id) {
-    console.log(meal_id);
-    const query = {
-        text: 'DELETE FROM "meal" where "meal_id"=$1',
-        values: [meal_id]
-    };
-    return pool.query(query);
-};
-
-var getOrderedMeals = async function () {
-    const query = {
-        text: 'select * from "users_offer" order by users_offer_id desc limit 1 offset 1'
-    };
-    return pool.query(query);
-};
-
-var getAllMealsInUse = async function () {
-    const query = {
-        text: 'select wo.monday, wo.tuesday, wo.wednesday, wo.thursday, wo.friday from weekly_offer wo order by weekly_offer_id desc limit 1;'
-    };
-    return pool.query(query);
-}
-
-var updateMeal = async function (meal_id, mealName, mealCategory, mealType, mealDays) {
-    console.log(meal_id, mealName, mealCategory, mealType, mealDays);
-    const query = {
-        text: `update meal set "mealName" = '${mealName}', "mealCategory" = '${mealCategory}', "mealDays" = '{${mealDays}}', "mealType" = '${mealType}' where meal_id = ${meal_id};`,
-    };
-    console.log('QUERY: ', query.text);
-
-    return pool.query(query);
-};
-
-
-var getLatestOrder = async function () {
-    console.log('usao u metodu backend');
-    const query = {
-        text: 'select * from "users_offer" order by users_offer_id desc limit 1'
-    };
-    return pool.query(query);
-};
-
-
-
-
-///////////////////////////////OFFER/////////////////////////
-
-
-
-
-var saveWeeklyOffer = async function (period, monday, tuesday, wednesday, thursday, friday) {
-    const query = {
-        text: 'INSERT INTO "weekly_offer"("period", "monday", "tuesday", "wednesday","thursday","friday") VALUES($1, $2, $3, $4,$5,$6)',
-        values: [period, monday, tuesday, wednesday, thursday, friday]
-    }
-    return pool.query(query);
-};
-
-var updateWeeklyOffer = async function (period, monday, tuesday, wednesday, thursday, friday) {
- 
-    const query = {
-        text: `update weekly_offer set "monday" = '{${monday}}', "tuesday" = '{${tuesday}}', "wednesday" = '{${wednesday}}', "thursday" = '{${thursday}}',"friday" = '{${friday}}' where "period" = '${period}';`,
-    };
-    console.log('QUERY: ', query.text);
-
-    return pool.query(query);
-};
-
-var getWeeklyOffer = async function () {
-    const query = {
-        text: 'SELECT * FROM "weekly_offer" order by weekly_offer_id desc limit 1',
-    }
-    return pool.query(query);
-};
-var getPreviousWeeklyOffer = async function () {
-    const query = {
-        text: 'SELECT * FROM "weekly_offer" order by weekly_offer_id desc limit 1 offset 1',
-    }
-    return pool.query(query);
-};
-var getAllPeriods = async function () {
-    const query = {
-        text: 'SELECT period FROM "weekly_offer"',
-    }
-    return pool.query(query);
-};
-
-
-
-
-// DELETE FROM "meal" where "meal_id"=67
-
+exports.getAllArrangements = getAllArrangements;
+exports.updateArrangement = updateArrangement;
+exports.getAllReservations = getAllReservations;
+exports.updateReservation = updateReservation;
+exports.addReservation = addReservation;
 exports.getAllUsers = getAllUsers;
-exports.getUserId=getUserId;
-exports.getUserByUsername = getUserByUsername;
-exports.addNewMeal = addNewMeal;
-exports.getAllMeals = getAllMeals;
-exports.saveWeeklyOffer = saveWeeklyOffer;
-exports.getWeeklyOffer = getWeeklyOffer;
-exports.deleteMeal = deleteMeal;
-exports.updateUsersOffer = updateUsersOffer;
-exports.setUsersOfferPeriod = setUsersOfferPeriod;
-exports.getOrderedMeals = getOrderedMeals;
-exports.getAllMealsInUse = getAllMealsInUse;
-exports.updateMeal = updateMeal;
-exports.updateWeeklyOffer=updateWeeklyOffer;
-exports.saveNewRecommendation = saveNewRecommendation;
-exports.updateRecommendation = updateRecommendation;
-exports.getAllRecommendations = getAllRecommendations;
-exports.getLatestOrder = getLatestOrder;
-exports.getPreviousWeeklyOffer = getPreviousWeeklyOffer;
-exports.getAllPeriods=getAllPeriods;
-exports.getUserBoolean=getUserBoolean;
+exports.getAllUsersFromView = getAllUsersFromView;
+exports.updateUserFromView = updateUserFromView;
+exports.updateUser = updateUser;
+exports.getAllPaymentCards = getAllPaymentCards;
+exports.addUserToUserView = addUserToUserView;
+exports.getAllPaymentCardTypes = getAllPaymentCardTypes;
+exports.addPaymentCard = addPaymentCard;
+exports.updatePaymentCard = updatePaymentCard;
+exports.getAllRegular = getAllRegular;
+exports.getAllVip = getAllVip;
+exports.addPaymentCardType = addPaymentCardType;
+exports.addNewContract = addNewContract;
+exports.getHotels = getHotels;
+exports.getCities = getCities;
+exports.addNewHotel = addNewHotel;
